@@ -1,6 +1,5 @@
 import * as Icons from 'lucide-react';
 import { Challenge } from '../lib/supabase';
-import { LucideIcon } from 'lucide-react';
 
 interface DailyPickerProps {
   dailyChallenges: Challenge[];
@@ -58,7 +57,7 @@ export function DailyPicker({ dailyChallenges, completedToday, onToggle, onRefre
       <div className="p-6 space-y-3">
         {dailyChallenges.map((challenge) => {
           const isCompleted = completedToday.has(challenge.id);
-          const IconComponent = (Icons[challenge.icon as keyof typeof Icons] as LucideIcon) || Icons.Sparkles;
+          const IconComponent = (Icons[challenge.icon as keyof typeof Icons] as typeof Icons.Sparkles) || Icons.Sparkles;
 
           return (
             <div
@@ -83,6 +82,10 @@ export function DailyPicker({ dailyChallenges, completedToday, onToggle, onRefre
                     <span className="flex items-center gap-1">
                       <Icons.Clock className="w-3 h-3" />
                       {challenge.duration_minutes} min
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-violet-600">
+                      <Icons.Zap className="w-3 h-3" fill="currentColor" />
+                      +{challenge.glow_points} XP
                     </span>
                     <span className="uppercase tracking-wider">{challenge.category}</span>
                   </div>

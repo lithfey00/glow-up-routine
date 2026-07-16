@@ -1,5 +1,4 @@
 import * as Icons from 'lucide-react';
-import { LucideIcon } from 'lucide-react';
 
 interface StatsCardProps {
   icon: keyof typeof Icons;
@@ -9,7 +8,7 @@ interface StatsCardProps {
 }
 
 export function StatsCard({ icon, label, value, gradient }: StatsCardProps) {
-  const IconComponent = (Icons[icon] as LucideIcon) || Icons.Sparkles;
+  const IconComponent = (Icons[icon] as typeof Icons.Sparkles) || Icons.Sparkles;
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">

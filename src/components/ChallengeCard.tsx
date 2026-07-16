@@ -1,6 +1,5 @@
 import { Challenge } from '../lib/supabase';
 import * as Icons from 'lucide-react';
-import { LucideIcon } from 'lucide-react';
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -22,8 +21,15 @@ const categoryBg = {
   health: 'bg-blue-50 border-blue-200',
 };
 
+const difficultyConfig = {
+  easy: { label: 'Makkelijk', color: 'text-green-600 bg-green-100', points: 10 },
+  medium: { label: 'Gemiddeld', color: 'text-amber-600 bg-amber-100', points: 25 },
+  hard: { label: 'Moeilijk', color: 'text-red-600 bg-red-100', points: 50 },
+};
+
 export function ChallengeCard({ challenge, isCompleted, onToggle }: ChallengeCardProps) {
-  const IconComponent = (Icons[challenge.icon as keyof typeof Icons] as LucideIcon) || Icons.Sparkles;
+  const IconComponent = (Icons[challenge.icon as keyof typeof Icons] as typeof Icons.Sparkles) || Icons.Sparkles;
+  const diff = difficultyConfig[challenge.difficulty];
 
   return (
     <div
@@ -55,18 +61,29 @@ export function ChallengeCard({ challenge, isCompleted, onToggle }: ChallengeCar
         <h3 className="text-xl font-bold text-gray-800 mb-2">{challenge.title}</h3>
         <p className="text-gray-600 text-sm mb-4 leading-relaxed">{challenge.description}</p>
 
-        <div className="flex items-center justify-between">
-          <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
-              isCompleted ? 'bg-gray-100 text-gray-600' : `bg-white/80 text-gray-700`
-            }`}
-          >
-            <Icons.Clock className="w-3.5 h-3.5" />
-            {challenge.duration_minutes} min
-          </span>
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            {challenge.category}
-          </span>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                isCompleted ? 'bg-gray-100 text-gray-600' : `bg-white/80 text-gray-700`
+              }`}
+            >
+              <Icons.Clock className="w-3.5 h-3.5" />
+              {challenge.duration_minutes} min
+            </span>
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold ${diff.color}`}>
+              {diff.label}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-violet-100 to-pink-100 text-violet-700">
+              <Icons.Zap className="w-3.5 h-3.5" fill="currentColor" />
+              +{challenge.glow_points} XP
+            </span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              {challenge.category}
+            </span>
+          </div>
         </div>
       </div>
 
