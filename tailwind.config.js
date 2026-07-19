@@ -7,6 +7,7 @@ export default {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
         display: ['"Quicksand"', 'system-ui', 'sans-serif'],
+        quicksand: ['"Quicksand"', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fade-in 0.4s ease-out',

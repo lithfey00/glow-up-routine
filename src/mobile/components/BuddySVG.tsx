@@ -11,7 +11,14 @@ export function BuddySVG({ stage, sleepy, size = 120 }: { stage: BuddyStage; sle
   const c = colors[stage];
 
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" className="drop-shadow-lg">
+    <svg width={size} height={size} viewBox="0 0 100 100" className="drop-shadow-[0_8px_16px_rgba(236,72,153,0.2)]">
+      <defs>
+        <radialGradient id={`glow-${stage}`} cx="50%" cy="40%" r="50%">
+          <stop offset="0%" stopColor={c.glow} stopOpacity="0.4" />
+          <stop offset="100%" stopColor={c.glow} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="45" r="42" fill={`url(#glow-${stage})`} />
       <path d="M 30 78 L 35 95 L 65 95 L 70 78 Z" fill="#d97706" />
       <ellipse cx="50" cy="78" rx="20" ry="4" fill="#b45309" />
       {stage === 'seed' && <ellipse cx="50" cy="72" rx="8" ry="6" fill={c.body} />}
