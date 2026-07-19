@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
 import { GlassCard, Skeleton, SectionHeader, ProgressBar, Pressable } from '../components/ui';
-import { BuddySVG, getStageFromXp } from '../components/BuddySVG';
+import { BuddySVG, getStageFromXp, getMoodForDay } from '../components/BuddySVG';
 import { NativeScroll } from '../components/NativeScroll';
 import { dailyQuote } from '../lib/quotes';
 import { haptic } from '../lib/haptics';
@@ -10,18 +10,15 @@ import { supabase, type Challenge } from '../../lib/supabase';
 import { getLevelInfo, updateUserStats } from '../../lib/statsUtils';
 import { MOOD_CONFIG, type Mood } from '../../lib/types';
 
-export function HomeScreen() {
-  const { challenges, completedToday, userStats, buddyXp, mascot, toggleChallenge, loading, sessionId, showToast, refresh } = useMobileApp();
+export function HomeScreen({ userName }: { userName?: string }) {
+  const { challenges, completedToday, userStats, buddyXp, toggleChallenge, loading, sessionId, showToast, refresh } = useMobileApp();
   const [mood, setMood] = useState<Mood | null>(null);
   const [dailyClaimed, setDailyClaimed] = useState(false);
   const [quote] = useState(() => dailyQuote());
 
   const levelInfo = getLevelInfo(userStats?.glow_points || 0);
   const stageInfo = getStageFromXp(buddyXp);
-  const daysInactive = mascot?.last_interaction
-    ? Math.floor((Date.now() - new Date(mascot.last_interaction).getTime()) / 86400000)
-    : 0;
-  const isSleepy = daysInactive >= 3 && completedToday.size === 0;
+  const buddyMood = getMoodForDay(completedToday.size, userStats?.current_streak || 0);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
@@ -85,7 +82,7 @@ export function HomeScreen() {
           {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
         <h1 className="text-[28px] font-bold text-gradient font-quicksand tracking-tight leading-tight">
-          {greeting}, lovely
+          {greeting}, {userName || 'lovely'}
         </h1>
       </div>
 
@@ -158,15 +155,17 @@ export function HomeScreen() {
           <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-300 bg-emerald-100/60 dark:bg-emerald-900/30 px-2.5 py-1 rounded-full">{stageInfo.name}</span>
         </div>
         <div className="flex items-center gap-5">
-          <div className="animate-float flex-shrink-0"><BuddySVG stage={stageInfo.stage} sleepy={isSleepy} size={104} /></div>
+          <div className="flex-shrink-0"><BuddySVG stage={stageInfo.stage} mood={buddyMood.type} interactive size={104} /></div>
           <div className="flex-1">
-            <p className="text-[14px] text-gray-600 dark:text-purple-100/80 leading-relaxed font-medium">
-              {isSleepy ? 'Your buddy missed you! A tiny step today means the world.' : completedToday.size === 0 ? 'Ready when you are! One challenge helps us grow.' : 'You\'re glowing! So proud of you today!'}
-            </p>
+            <div className="relative mb-2">
+              <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl rounded-tl-sm px-3.5 py-2.5">
+                <p className="text-[13px] text-gray-600 dark:text-purple-100/80 leading-relaxed font-medium">{buddyMood.blurb}</p>
+              </div>
+            </div>
             <div className="mt-3">
               <ProgressBar value={stageInfo.progress} gradient="from-emerald-400 to-teal-400" />
             </div>
-            <p className="text-[10px] text-gray-400 mt-1.5 font-medium">{buddyXp} Buddy XP</p>
+            <p className="text-[10px] text-gray-400 mt-1.5 font-medium">{buddyXp} Buddy XP{stageInfo.nextXp ? ` · ${stageInfo.nextXp - buddyXp} to ${stageInfo.name === 'Tree' ? 'max' : 'next'}` : ' · Max stage'}</p>
           </div>
         </div>
       </GlassCard>

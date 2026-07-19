@@ -7,7 +7,7 @@ import { useTheme } from '../../lib/theme';
 import { getLevelInfo } from '../../lib/statsUtils';
 import { haptic } from '../lib/haptics';
 
-export function ProfileScreen() {
+export function ProfileScreen({ userName, onNameChange }: { userName?: string; onNameChange?: (n: string) => void }) {
   const { userStats, unlockedAchievements, buddyXp, refresh } = useMobileApp();
   const { theme, toggle } = useTheme();
   const [notifications, setNotifications] = useState(true);
@@ -31,7 +31,7 @@ export function ProfileScreen() {
             </div>
           </div>
           <div>
-            <h2 className="text-[20px] font-bold text-gray-800 dark:text-purple-100 font-quicksand">Glow User</h2>
+            <h2 className="text-[20px] font-bold text-gray-800 dark:text-purple-100 font-quicksand">{userName || 'Glow User'}</h2>
             <p className="text-[13px] text-gray-500 dark:text-purple-300/60">{levelInfo.name}</p>
             <div className="flex items-center gap-1.5 mt-2">
               <Icons.Zap className="w-3.5 h-3.5 text-violet-500" fill="currentColor" />
@@ -64,6 +64,13 @@ export function ProfileScreen() {
         <h2 className="text-[17px] font-bold text-gray-800 dark:text-purple-100 font-quicksand px-3 pt-3 pb-2">Settings</h2>
         <SettingRow icon={<Icons.Moon className="w-5 h-5 text-indigo-500" />} label="Dark Mode" onClick={() => { haptic('selection'); toggle(); }}>
           <ToggleSwitch on={theme === 'dark'} />
+        </SettingRow>
+        <SettingRow icon={<Icons.User className="w-5 h-5 text-pink-500" />} label="Edit Name" onClick={() => {
+          const n = prompt('What should we call you?', userName || '');
+          if (n !== null && onNameChange) { onNameChange(n.trim()); localStorage.setItem('glow-user-name', n.trim()); haptic('selection'); }
+        }}>
+          <span className="text-[13px] text-gray-400 font-medium max-w-[120px] truncate">{userName || 'Set name'}</span>
+          <Icons.ChevronRight className="w-4 h-4 text-gray-300 dark:text-purple-300/30" />
         </SettingRow>
         <SettingRow icon={<Icons.Bell className="w-5 h-5 text-teal-500" />} label="Notifications" onClick={() => { haptic('selection'); setNotifications(!notifications); }}>
           <ToggleSwitch on={notifications} />

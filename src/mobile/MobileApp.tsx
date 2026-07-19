@@ -10,6 +10,7 @@ import { Onboarding } from './screens/Onboarding';
 import * as Icons from 'lucide-react';
 
 const ONBOARDED_KEY = 'glow-onboarded';
+const NAME_KEY = 'glow-user-name';
 
 function Toast() {
   const { toast } = useMobileApp();
@@ -34,14 +35,19 @@ function Toast() {
 
 function MobileShell() {
   const [tab, setTab] = useState<TabId>('home');
+  const [userName, setUserName] = useState<string>(() => localStorage.getItem(NAME_KEY) || '');
   const [onboarded, setOnboarded] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem(ONBOARDED_KEY) === 'true';
   });
   const scrollPositions = useRef<Record<TabId, number>>({ home: 0, challenges: 0, progress: 0, rewards: 0, profile: 0 });
 
-  function completeOnboarding() {
+  function completeOnboarding(name?: string) {
     localStorage.setItem(ONBOARDED_KEY, 'true');
+    if (name) {
+      localStorage.setItem(NAME_KEY, name);
+      setUserName(name);
+    }
     setOnboarded(true);
   }
 
@@ -68,11 +74,11 @@ function MobileShell() {
         </div>
 
         <div key={tab} className="relative flex-1 min-h-0 animate-page-enter">
-          {tab === 'home' && <HomeScreen />}
+          {tab === 'home' && <HomeScreen userName={userName} />}
           {tab === 'challenges' && <ChallengesScreen />}
           {tab === 'progress' && <ProgressScreen />}
           {tab === 'rewards' && <RewardsScreen />}
-          {tab === 'profile' && <ProfileScreen />}
+          {tab === 'profile' && <ProfileScreen userName={userName} onNameChange={setUserName} />}
         </div>
 
         <Toast />
