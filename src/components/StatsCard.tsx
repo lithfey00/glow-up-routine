@@ -8,17 +8,17 @@ interface StatsCardProps {
 }
 
 export function StatsCard({ icon, label, value, gradient }: StatsCardProps) {
-  const IconComponent = (Icons[icon] as typeof Icons.Sparkles) || Icons.Sparkles;
+  const IconComponent = (Icons[icon as keyof typeof Icons] as typeof Icons.Sparkles) || Icons.Sparkles;
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
-      <div className="flex items-center gap-4">
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
-          <IconComponent className="w-6 h-6 text-white" strokeWidth={2.5} />
+    <div className="bg-white dark:bg-slate-800/60 rounded-2xl p-5 shadow-md border border-gray-100 dark:border-purple-900/40 hover:shadow-lg transition-all">
+      <div className="flex items-center gap-3">
+        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+          <IconComponent className="w-5 h-5 text-white" strokeWidth={2.5} />
         </div>
         <div>
-          <div className="text-3xl font-bold text-gray-800">{value}</div>
-          <div className="text-sm font-medium text-gray-500">{label}</div>
+          <div className="text-2xl font-bold text-gray-800 dark:text-purple-100">{value}</div>
+          <div className="text-xs font-medium text-gray-500 dark:text-purple-300/60">{label}</div>
         </div>
       </div>
     </div>

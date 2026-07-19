@@ -57,13 +57,13 @@ export function WeeklySummary({ userId, userStats, mascot, onViewBadges }: Weekl
     const badges = badgesResult.data || [];
 
     const xpEarned = progress.reduce((sum, p) => {
-      const ch = p.challenges as { glow_points: number } | null;
+      const ch = (p.challenges as unknown as { glow_points: number } | null);
       return sum + (ch?.glow_points || 0);
     }, 0);
 
     const categoryBreakdown: Record<string, number> = {};
     progress.forEach((p) => {
-      const ch = p.challenges as { category: string } | null;
+      const ch = (p.challenges as unknown as { category: string } | null);
       if (ch?.category) {
         categoryBreakdown[ch.category] = (categoryBreakdown[ch.category] || 0) + 1;
       }
@@ -72,7 +72,7 @@ export function WeeklySummary({ userId, userStats, mascot, onViewBadges }: Weekl
     const activeDaySet = new Set(progress.map((p) => p.completed_at.split('T')[0]));
 
     const newBadges = badges
-      .map((b) => (b.achievements as { name: string } | null)?.name)
+      .map((b) => (b.achievements as unknown as { name: string } | null)?.name)
       .filter(Boolean) as string[];
 
     setWeeklyData({

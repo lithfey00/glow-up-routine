@@ -91,7 +91,7 @@ export function ProgressHistory({
     data?.forEach((item) => {
       const date = item.completed_at.split('T')[0];
       dateMap[date] = (dateMap[date] || 0) + 1;
-      const cat = (item.challenges as { category: string } | null)?.category;
+      const cat = (item.challenges as unknown as { category: string } | null)?.category;
       if (cat && cat in cats) cats[cat as keyof CategoryTotals]++;
     });
 
@@ -123,7 +123,7 @@ export function ProgressHistory({
   const totalCompleted = history.reduce((s, d) => s + d.count, 0);
   const activeDays = history.filter((d) => d.count > 0).length;
   const bestDay = Math.max(...history.map((d) => d.count), 0);
-  const maxCategoryCount = Math.max(...Object.values(categoryTotals), 1);
+
 
   // Next reward
   const sortedRewards = [...rewards].sort((a, b) => a.required_level - b.required_level);
