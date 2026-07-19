@@ -3,6 +3,7 @@ import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
 import { GlassCard, Skeleton, SectionHeader, ProgressBar, Pressable } from '../components/ui';
 import { BuddySVG, getStageFromXp } from '../components/BuddySVG';
+import { NativeScroll } from '../components/NativeScroll';
 import { dailyQuote } from '../lib/quotes';
 import { haptic } from '../lib/haptics';
 import { supabase, type Challenge } from '../../lib/supabase';
@@ -10,7 +11,7 @@ import { getLevelInfo, updateUserStats } from '../../lib/statsUtils';
 import { MOOD_CONFIG, type Mood } from '../../lib/types';
 
 export function HomeScreen() {
-  const { challenges, completedToday, userStats, buddyXp, mascot, toggleChallenge, loading, sessionId, showToast } = useMobileApp();
+  const { challenges, completedToday, userStats, buddyXp, mascot, toggleChallenge, loading, sessionId, showToast, refresh } = useMobileApp();
   const [mood, setMood] = useState<Mood | null>(null);
   const [dailyClaimed, setDailyClaimed] = useState(false);
   const [quote] = useState(() => dailyQuote());
@@ -77,7 +78,7 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5">
+    <NativeScroll onRefresh={refresh} contentClassName="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5" >
       {/* Hero greeting */}
       <div className="animate-fade-in">
         <p className="text-[13px] text-gray-400 dark:text-purple-300/50 font-medium">
@@ -220,6 +221,6 @@ export function HomeScreen() {
           })}
         </div>
       </div>
-    </div>
+    </NativeScroll>
   );
 }

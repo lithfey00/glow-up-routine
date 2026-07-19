@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
 import { GlassCard, Skeleton, EmptyState, Pill } from '../components/ui';
+import { NativeScroll } from '../components/NativeScroll';
 import { supabase } from '../../lib/supabase';
 import { haptic } from '../lib/haptics';
 import { triggerConfetti } from '../../lib/confetti';
@@ -97,7 +98,7 @@ export function RewardsScreen() {
   }
 
   return (
-    <div className="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5 animate-page-enter">
+    <NativeScroll onRefresh={refresh} contentClassName="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5 animate-page-enter">
       <div className="flex items-center justify-between">
         <h1 className="text-[28px] font-bold text-gray-800 dark:text-purple-100 font-quicksand tracking-tight">Rewards</h1>
         <div className="flex items-center gap-1.5 px-3.5 py-2 glass rounded-full">
@@ -192,6 +193,6 @@ export function RewardsScreen() {
           <p className="text-[12px] text-gray-400 mt-1.5 font-medium">One mystery box per day · 50–200 XP inside</p>
         </div>
       )}
-    </div>
+    </NativeScroll>
   );
 }

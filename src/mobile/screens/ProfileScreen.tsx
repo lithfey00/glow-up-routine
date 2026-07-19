@@ -2,12 +2,13 @@ import { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
 import { GlassCard, ProgressBar } from '../components/ui';
+import { NativeScroll } from '../components/NativeScroll';
 import { useTheme } from '../../lib/theme';
 import { getLevelInfo } from '../../lib/statsUtils';
 import { haptic } from '../lib/haptics';
 
 export function ProfileScreen() {
-  const { userStats, unlockedAchievements, buddyXp } = useMobileApp();
+  const { userStats, unlockedAchievements, buddyXp, refresh } = useMobileApp();
   const { theme, toggle } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [language, setLanguage] = useState('English');
@@ -15,7 +16,7 @@ export function ProfileScreen() {
   const levelInfo = getLevelInfo(userStats?.glow_points || 0);
 
   return (
-    <div className="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5 animate-page-enter">
+    <NativeScroll onRefresh={refresh} contentClassName="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5 animate-page-enter">
       <h1 className="text-[28px] font-bold text-gray-800 dark:text-purple-100 font-quicksand tracking-tight">Profile</h1>
 
       {/* Profile hero */}
@@ -78,7 +79,7 @@ export function ProfileScreen() {
       </GlassCard>
 
       <p className="text-center text-[11px] text-gray-400 dark:text-purple-300/40 font-medium">Glow Up v2.0 · Made with love</p>
-    </div>
+    </NativeScroll>
   );
 }
 

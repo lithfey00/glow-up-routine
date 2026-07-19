@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { BottomNav, type TabId } from './components/BottomNav';
 import { MobileAppProvider, useMobileApp } from './context/MobileAppContext';
 import { HomeScreen } from './screens/HomeScreen';
@@ -38,10 +38,20 @@ function MobileShell() {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem(ONBOARDED_KEY) === 'true';
   });
+  const scrollPositions = useRef<Record<TabId, number>>({ home: 0, challenges: 0, progress: 0, rewards: 0, profile: 0 });
 
   function completeOnboarding() {
     localStorage.setItem(ONBOARDED_KEY, 'true');
     setOnboarded(true);
+  }
+
+  function handleTabChange(next: TabId) {
+    scrollPositions.current[tab] = document.querySelector('[data-scroll-container]')?.scrollTop || 0;
+    setTab(next);
+    requestAnimationFrame(() => {
+      const el = document.querySelector('[data-scroll-container]');
+      if (el) el.scrollTop = scrollPositions.current[next] || 0;
+    });
   }
 
   if (!onboarded) {
@@ -49,15 +59,15 @@ function MobileShell() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-violet-50 to-blue-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-700">
-      <div className="mx-auto max-w-md min-h-screen relative">
+    <div className="fixed inset-0 bg-gradient-to-br from-pink-50 via-violet-50 to-blue-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-700 overflow-hidden">
+      <div className="mx-auto max-w-md h-full relative flex flex-col">
         {/* Animated background orbs */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-pink-200/20 dark:bg-pink-600/10 rounded-full blur-3xl animate-breathe" />
           <div className="absolute top-1/3 -left-20 w-64 h-64 bg-violet-200/20 dark:bg-violet-600/10 rounded-full blur-3xl animate-breathe" style={{ animationDelay: '1s' }} />
         </div>
 
-        <div key={tab} className="relative animate-page-enter">
+        <div key={tab} className="relative flex-1 min-h-0 animate-page-enter">
           {tab === 'home' && <HomeScreen />}
           {tab === 'challenges' && <ChallengesScreen />}
           {tab === 'progress' && <ProgressScreen />}
@@ -66,7 +76,7 @@ function MobileShell() {
         </div>
 
         <Toast />
-        <BottomNav active={tab} onChange={setTab} />
+        <BottomNav active={tab} onChange={handleTabChange} />
       </div>
     </div>
   );

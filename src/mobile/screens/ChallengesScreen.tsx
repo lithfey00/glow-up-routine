@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
 import { GlassCard, EmptyState, Skeleton, Pill } from '../components/ui';
+import { NativeScroll } from '../components/NativeScroll';
 import { haptic } from '../lib/haptics';
 import { supabase } from '../../lib/supabase';
 
@@ -16,7 +17,7 @@ const CATEGORIES = [
 const DIFFICULTIES = ['all', 'easy', 'medium', 'hard'] as const;
 
 export function ChallengesScreen() {
-  const { challenges, completedToday, toggleChallenge, loading, sessionId } = useMobileApp();
+  const { challenges, completedToday, toggleChallenge, loading, sessionId, refresh } = useMobileApp();
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState<string>('all');
   const [diffFilter, setDiffFilter] = useState<string>('all');
@@ -59,10 +60,9 @@ export function ChallengesScreen() {
   }
 
   return (
-    <div className="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 animate-page-enter">
+    <NativeScroll onRefresh={refresh} contentClassName="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 animate-page-enter">
       <h1 className="text-[28px] font-bold text-gray-800 dark:text-purple-100 font-quicksand tracking-tight mb-4">Challenges</h1>
 
-      {/* Search */}
       <div className="relative mb-4">
         <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400" />
         <input
@@ -79,7 +79,6 @@ export function ChallengesScreen() {
         </button>
       </div>
 
-      {/* Category chips */}
       <div className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 no-scrollbar">
         {CATEGORIES.map((cat) => {
           const IconComp = (Icons[cat.icon as keyof typeof Icons] as typeof Icons.Sparkles) || Icons.Sparkles;
@@ -92,7 +91,6 @@ export function ChallengesScreen() {
         })}
       </div>
 
-      {/* Difficulty */}
       <div className="flex gap-2 mb-5">
         {DIFFICULTIES.map((d) => (
           <Pill key={d} active={diffFilter === d} onClick={() => { setDiffFilter(d); haptic('selection'); }}>
@@ -101,7 +99,6 @@ export function ChallengesScreen() {
         ))}
       </div>
 
-      {/* List */}
       {filtered.length === 0 ? (
         <EmptyState emoji="🔍" title="No challenges found" subtitle="Try a different search or filter." />
       ) : (
@@ -151,6 +148,6 @@ export function ChallengesScreen() {
           })}
         </div>
       )}
-    </div>
+    </NativeScroll>
   );
 }

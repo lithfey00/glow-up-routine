@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
 import { GlassCard, Skeleton, EmptyState, ProgressBar, Pill } from '../components/ui';
+import { NativeScroll } from '../components/NativeScroll';
 import { supabase } from '../../lib/supabase';
 import { getLevelInfo } from '../../lib/statsUtils';
 
@@ -67,7 +68,7 @@ export function ProgressScreen() {
   };
 
   return (
-    <div className="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5 animate-page-enter">
+    <NativeScroll onRefresh={() => {}} contentClassName="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5 animate-page-enter">
       <h1 className="text-[28px] font-bold text-gray-800 dark:text-purple-100 font-quicksand tracking-tight">Progress</h1>
 
       {/* Period toggle */}
@@ -157,7 +158,7 @@ export function ProgressScreen() {
       {stats.completed === 0 && (
         <EmptyState emoji="🌱" title="No activity yet" subtitle="Complete challenges to see your progress bloom." />
       )}
-    </div>
+    </NativeScroll>
   );
 }
 
