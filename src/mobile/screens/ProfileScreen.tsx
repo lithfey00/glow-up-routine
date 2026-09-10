@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
 import { GlassCard, ProgressBar } from '../components/ui';
@@ -6,14 +6,31 @@ import { NativeScroll } from '../components/NativeScroll';
 import { useTheme } from '../../lib/theme';
 import { getLevelInfo } from '../../lib/statsUtils';
 import { haptic } from '../lib/haptics';
+import { supabase } from '../../lib/supabase';
 
 export function ProfileScreen({ userName, onNameChange }: { userName?: string; onNameChange?: (n: string) => void }) {
-  const { userStats, unlockedAchievements, buddyXp, refresh } = useMobileApp();
+  const { userStats, unlockedAchievements, buddyXp, refresh, sessionId } = useMobileApp();
   const { theme, toggle } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [language, setLanguage] = useState('English');
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
 
   const levelInfo = getLevelInfo(userStats?.glow_points || 0);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('screen_views')
+        .select('screen_name')
+        .eq('session_id', sessionId);
+      const counts: Record<string, number> = {};
+      (data || []).forEach((r) => {
+        const name = (r as { screen_name: string }).screen_name;
+        counts[name] = (counts[name] || 0) + 1;
+      });
+      setViewCounts(counts);
+    })();
+  }, [sessionId, userStats]);
 
   return (
     <NativeScroll onRefresh={refresh} contentClassName="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5 animate-page-enter">
@@ -83,6 +100,36 @@ export function ProfileScreen({ userName, onNameChange }: { userName?: string; o
         <SettingRow icon={<Icons.Shield className="w-5 h-5 text-emerald-500" />} label="Privacy" chevron />
         <SettingRow icon={<Icons.Download className="w-5 h-5 text-amber-500" />} label="Export Data" chevron />
         <SettingRow icon={<Icons.Crown className="w-5 h-5 text-amber-500" fill="currentColor" />} label="Glow Premium" chevron premium />
+      </GlassCard>
+
+      {/* Analytics */}
+      <GlassCard className="p-5 animate-fade-in stagger-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Icons.BarChart3 className="w-5 h-5 text-violet-500" />
+          <h2 className="text-[17px] font-bold text-gray-800 dark:text-purple-100 font-quicksand">Screen Views</h2>
+        </div>
+        <div className="space-y-2.5">
+          {[
+            { name: 'Home', icon: Icons.Home },
+            { name: 'Challenges', icon: Icons.CheckCircle },
+            { name: 'Progress', icon: Icons.TrendingUp },
+            { name: 'Rewards', icon: Icons.Gift },
+            { name: 'Profile', icon: Icons.User },
+          ].map(({ name, icon: Icon }) => {
+            const count = viewCounts[name.toLowerCase()] || 0;
+            const total = Object.values(viewCounts).reduce((a, b) => a + b, 0) || 1;
+            const pct = (count / total) * 100;
+            return (
+              <div key={name} className="flex items-center gap-3">
+                <Icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-[13px] font-semibold text-gray-600 dark:text-purple-200 w-20 flex-shrink-0">{name}</span>
+                <div className="flex-1"><ProgressBar value={pct} gradient="from-pink-400 to-violet-400" /></div>
+                <span className="text-[13px] font-bold text-gray-700 dark:text-purple-100 font-quicksand w-8 text-right">{count}</span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-gray-400 mt-3 text-center font-medium">Total: {Object.values(viewCounts).reduce((a, b) => a + b, 0)} views</p>
       </GlassCard>
 
       <p className="text-center text-[11px] text-gray-400 dark:text-purple-300/40 font-medium">Glow Up v2.0 · Made with love</p>

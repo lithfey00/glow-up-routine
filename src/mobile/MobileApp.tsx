@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { BottomNav, type TabId } from './components/BottomNav';
 import { MobileAppProvider, useMobileApp } from './context/MobileAppContext';
+import { supabase } from '../lib/supabase';
 import { HomeScreen } from './screens/HomeScreen';
 import { ChallengesScreen } from './screens/ChallengesScreen';
 import { ProgressScreen } from './screens/ProgressScreen';
@@ -34,6 +35,7 @@ function Toast() {
 }
 
 function MobileShell() {
+  const { sessionId } = useMobileApp();
   const [tab, setTab] = useState<TabId>('home');
   const [userName, setUserName] = useState<string>(() => localStorage.getItem(NAME_KEY) || '');
   const [onboarded, setOnboarded] = useState<boolean>(() => {
@@ -54,11 +56,16 @@ function MobileShell() {
   function handleTabChange(next: TabId) {
     scrollPositions.current[tab] = document.querySelector('[data-scroll-container]')?.scrollTop || 0;
     setTab(next);
+    supabase.from('screen_views').insert({ session_id: sessionId, screen_name: next });
     requestAnimationFrame(() => {
       const el = document.querySelector('[data-scroll-container]');
       if (el) el.scrollTop = scrollPositions.current[next] || 0;
     });
   }
+
+  useEffect(() => {
+    supabase.from('screen_views').insert({ session_id: sessionId, screen_name: 'home' });
+  }, [sessionId]);
 
   if (!onboarded) {
     return <Onboarding onComplete={completeOnboarding} />;
