@@ -1,20 +1,18 @@
 {
-  "name": "Glow Up Routine",
+  "name": "Glow Up — Self-Care & Habits",
   "short_name": "GlowUp",
+  "description": "Your premium daily self-care & habit companion.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#f7b6d2",
+  "orientation": "portrait",
+  "background_color": "#fdf2f8",
+  "theme_color": "#ec4899",
   "icons": [
     {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

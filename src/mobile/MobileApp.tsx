@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
+import * as Icons from 'lucide-react';
 import { BottomNav, type TabId } from './components/BottomNav';
 import { MobileAppProvider, useMobileApp } from './context/MobileAppContext';
-import { HomeScreen } from './screens/HomeScreen';
-import { ChallengesScreen } from './screens/ChallengesScreen';
-import { ProgressScreen } from './screens/ProgressScreen';
-import { RewardsScreen } from './screens/RewardsScreen';
-import { ProfileScreen } from './screens/ProfileScreen';
-import * as Icons from 'lucide-react';
+
+const HomeScreen = lazy(() => import('./screens/HomeScreen').then(m => ({ default: m.HomeScreen })));
+const ChallengesScreen = lazy(() => import('./screens/ChallengesScreen').then(m => ({ default: m.ChallengesScreen })));
+const ProgressScreen = lazy(() => import('./screens/ProgressScreen').then(m => ({ default: m.ProgressScreen })));
+const RewardsScreen = lazy(() => import('./screens/RewardsScreen').then(m => ({ default: m.RewardsScreen })));
+const ProfileScreen = lazy(() => import('./screens/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
 
 function Toast() {
   const { toast } = useMobileApp();
@@ -29,18 +30,48 @@ function Toast() {
   );
 }
 
+function ErrorState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
+      <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-pink-100 to-violet-100 dark:from-purple-900/40 dark:to-pink-900/40 flex items-center justify-center mb-4">
+        <Icons.WifiOff className="w-7 h-7 text-pink-400" />
+      </div>
+      <h2 className="text-base font-bold text-gray-700 dark:text-purple-100 mb-1">Something went wrong</h2>
+      <p className="text-sm text-gray-400 dark:text-purple-300/60 max-w-xs mb-4">We couldn't load your data. Check your connection and try again.</p>
+      <button onClick={onRetry} className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-pink-500 to-violet-500 text-white text-sm font-bold shadow-md hover:scale-105 transition-all">
+        Try Again
+      </button>
+    </div>
+  );
+}
+
+function ScreenLoader() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Icons.Loader2 className="w-8 h-8 text-pink-400 animate-spin" />
+    </div>
+  );
+}
+
 function MobileShell() {
   const [tab, setTab] = useState<TabId>('home');
+  const { loadError, refresh } = useMobileApp();
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-violet-50 to-blue-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 transition-colors duration-500">
       {/* Phone-frame max width for desktop preview */}
       <div className="mx-auto max-w-md min-h-screen relative">
         <div className="pt-[max(0.5rem,env(safe-area-inset-top))]">
-          {tab === 'home' && <HomeScreen />}
-          {tab === 'challenges' && <ChallengesScreen />}
-          {tab === 'progress' && <ProgressScreen />}
-          {tab === 'rewards' && <RewardsScreen />}
-          {tab === 'profile' && <ProfileScreen />}
+          {loadError ? (
+            <ErrorState onRetry={refresh} />
+          ) : (
+            <Suspense fallback={<ScreenLoader />}>
+              {tab === 'home' && <HomeScreen />}
+              {tab === 'challenges' && <ChallengesScreen />}
+              {tab === 'progress' && <ProgressScreen />}
+              {tab === 'rewards' && <RewardsScreen />}
+              {tab === 'profile' && <ProfileScreen />}
+            </Suspense>
+          )}
         </div>
         <Toast />
         <BottomNav active={tab} onChange={setTab} />

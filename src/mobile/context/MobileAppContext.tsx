@@ -25,6 +25,7 @@ interface MobileAppContextValue {
   unlockedRewardIds: Set<string>;
   buddyXp: number;
   loading: boolean;
+  loadError: boolean;
   toggleChallenge: (challengeId: string) => Promise<void>;
   refresh: () => Promise<void>;
   toast: { message: string; type: 'achievement' | 'reward' | 'level' | 'coins' } | null;
@@ -33,8 +34,20 @@ interface MobileAppContextValue {
 
 const MobileAppContext = createContext<MobileAppContextValue | undefined>(undefined);
 
+const SESSION_KEY = 'glow-session-id';
+
+function getSessionId(): string {
+  if (typeof window === 'undefined') return 'session-anonymous';
+  let id = localStorage.getItem(SESSION_KEY);
+  if (!id) {
+    id = `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    localStorage.setItem(SESSION_KEY, id);
+  }
+  return id;
+}
+
 export function MobileAppProvider({ children }: { children: ReactNode }) {
-  const sessionId = useMemo(() => `session-${Date.now()}`, []);
+  const sessionId = useMemo(() => getSessionId(), []);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set());
   const [userStats, setUserStats] = useState<UserStats | null>(null);
@@ -45,6 +58,7 @@ export function MobileAppProvider({ children }: { children: ReactNode }) {
   const [unlockedRewardIds, setUnlockedRewardIds] = useState<Set<string>>(new Set());
   const [buddyXp, setBuddyXp] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [toast, setToast] = useState<MobileAppContextValue['toast']>(null);
 
   const showToast = useCallback((message: string, type: 'achievement' | 'reward' | 'level' | 'coins' = 'achievement') => {
@@ -53,6 +67,7 @@ export function MobileAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadAll = useCallback(async () => {
+    setLoadError(false);
     const [ch, stats, masc, ach, userAch, rew, userRew, progress] = await Promise.all([
       supabase.from('challenges').select('*').order('category'),
       supabase.from('user_stats').select('*').eq('user_id', sessionId).maybeSingle(),
@@ -63,6 +78,14 @@ export function MobileAppProvider({ children }: { children: ReactNode }) {
       supabase.from('user_rewards').select('reward_id').eq('user_id', sessionId),
       supabase.from('user_progress').select('challenge_id, completed_at').eq('user_id', sessionId),
     ]);
+
+    const failed = [ch, stats, masc, ach, userAch, rew, userRew, progress].some((r) => r.error);
+    if (failed) {
+      console.error('Data load failed');
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
 
     setChallenges((ch.data || []) as Challenge[]);
     setUserStats((stats.data as UserStats) || null);
@@ -91,14 +114,16 @@ export function MobileAppProvider({ children }: { children: ReactNode }) {
     const completedHour = new Date().getHours();
 
     if (wasCompleted) {
-      await supabase.from('user_progress').delete().eq('user_id', sessionId).eq('challenge_id', challengeId);
+      const { error } = await supabase.from('user_progress').delete().eq('user_id', sessionId).eq('challenge_id', challengeId);
+      if (error) { showToast('Could not update progress. Try again.', 'coins'); return; }
       setCompletedToday((prev) => { const n = new Set(prev); n.delete(challengeId); return n; });
     } else {
-      await supabase.from('user_progress').insert({
+      const { error } = await supabase.from('user_progress').insert({
         user_id: sessionId,
         challenge_id: challengeId,
         completed_at: new Date().toISOString(),
       });
+      if (error) { showToast('Could not save progress. Try again.', 'coins'); return; }
       setCompletedToday((prev) => new Set([...prev, challengeId]));
       triggerConfetti(30);
       haptic('success');
@@ -164,7 +189,7 @@ export function MobileAppProvider({ children }: { children: ReactNode }) {
   const value: MobileAppContextValue = {
     sessionId, challenges, completedToday, userStats, mascot,
     achievements, unlockedAchievements, rewards, unlockedRewardIds,
-    buddyXp, loading, toggleChallenge, refresh, toast, showToast,
+    buddyXp, loading, loadError, toggleChallenge, refresh, toast, showToast,
   };
 
   return <MobileAppContext.Provider value={value}>{children}</MobileAppContext.Provider>;

@@ -1,0 +1,2 @@
+
+DROP TABLE IF EXISTS screen_views CASCADE;
