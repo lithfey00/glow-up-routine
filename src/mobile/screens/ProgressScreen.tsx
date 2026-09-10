@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
-import { GlassCard, Skeleton, EmptyState, ProgressBar, Pill } from '../components/ui';
-import { NativeScroll } from '../components/NativeScroll';
+import { GlassCard, Skeleton, EmptyState } from '../components/ui';
 import { supabase } from '../../lib/supabase';
 import { getLevelInfo } from '../../lib/statsUtils';
 
@@ -64,78 +63,79 @@ export function ProgressScreen() {
 
   const maxCount = Math.max(...activity.map((a) => a.count), 1);
   const catColors: Record<string, string> = {
-    beauty: 'from-pink-400 to-rose-400', 'self-care': 'from-emerald-400 to-teal-400', mindset: 'from-amber-400 to-orange-400', health: 'from-blue-400 to-cyan-400',
+    beauty: 'bg-pink-400', 'self-care': 'bg-emerald-400', mindset: 'bg-amber-400', health: 'bg-blue-400',
   };
 
   return (
-    <NativeScroll onRefresh={() => {}} contentClassName="px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-28 space-y-5 animate-page-enter">
-      <h1 className="text-[28px] font-bold text-gray-800 dark:text-purple-100 font-quicksand tracking-tight">Progress</h1>
+    <div className="px-4 pt-6 pb-28 space-y-5 animate-fade-in">
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-purple-100">Progress</h1>
 
       {/* Period toggle */}
       <div className="flex gap-2">
         {(['week', 'month'] as Period[]).map((p) => (
-          <Pill key={p} active={period === p} onClick={() => setPeriod(p)}>
-            {p === 'week' ? 'This Week' : 'This Month'}
-          </Pill>
+          <button key={p} onClick={() => setPeriod(p)} className={`flex-1 py-2.5 rounded-2xl text-sm font-semibold capitalize transition-all ${period === p ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white shadow-md' : 'bg-white/60 dark:bg-slate-800/60 text-gray-500 dark:text-purple-300/70'}`}>
+            {p === 'week' ? 'Weekly' : 'Monthly'}
+          </button>
         ))}
       </div>
 
-      {/* Level hero */}
-      <GlassCard variant="sheen" className="p-5 animate-fade-in bg-gradient-to-br from-violet-50/80 to-pink-50/80 dark:from-purple-900/20 dark:to-pink-900/20">
-        <div className="flex items-center justify-between mb-4">
+      {/* Level + XP */}
+      <GlassCard className="p-5 bg-gradient-to-br from-violet-100/60 to-pink-100/60 dark:from-purple-900/30 dark:to-pink-900/30">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-[11px] text-gray-500 dark:text-purple-300/60 font-semibold uppercase tracking-wide">Current Level</p>
-            <p className="text-[24px] font-bold text-gray-800 dark:text-purple-100 font-quicksand leading-tight">Level {levelInfo.level}</p>
-            <p className="text-[13px] text-gray-400 dark:text-purple-300/50">{levelInfo.name}</p>
+            <p className="text-xs text-gray-500 dark:text-purple-300/70">Current Level</p>
+            <p className="text-2xl font-bold text-gray-800 dark:text-purple-100">Level {levelInfo.level} • {levelInfo.name}</p>
           </div>
-          <div className="w-14 h-14 rounded-[22px] bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center shadow-lg shadow-violet-500/30 animate-breathe">
-            <Icons.Star className="w-7 h-7 text-white" fill="currentColor" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center shadow-lg">
+            <Icons.Star className="w-6 h-6 text-white" fill="currentColor" />
           </div>
         </div>
-        <ProgressBar value={levelInfo.progress} height="h-3" />
-        <p className="text-[11px] text-gray-400 mt-2 font-medium">{userStats?.glow_points || 0} XP · {levelInfo.nextLevelPoints - (userStats?.glow_points || 0)} XP to next level</p>
+        <div className="h-3 bg-white/60 dark:bg-slate-700/60 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-violet-500 via-pink-500 to-blue-500 rounded-full transition-all duration-700" style={{ width: `${levelInfo.progress}%` }} />
+        </div>
+        <p className="text-[10px] text-gray-400 mt-1.5">{userStats?.glow_points || 0} XP • {levelInfo.nextLevelPoints - (userStats?.glow_points || 0)} XP to next level</p>
       </GlassCard>
 
       {/* Stat tiles */}
       <div className="grid grid-cols-2 gap-3">
-        <StatTile icon={<Icons.CheckCircle className="w-5 h-5 text-emerald-500" />} label="Completed" value={stats.completed} gradient="from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20" delay={0} />
-        <StatTile icon={<Icons.Zap className="w-5 h-5 text-violet-500" fill="currentColor" />} label="XP Earned" value={`+${stats.xp}`} gradient="from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20" delay={0.05} />
-        <StatTile icon={<Icons.Clock className="w-5 h-5 text-blue-500" />} label="Self-care min" value={stats.minutes} gradient="from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20" delay={0.1} />
-        <StatTile icon={<Icons.Flame className="w-5 h-5 text-orange-500" fill="currentColor" />} label="Best streak" value={`${userStats?.longest_streak || 0}d`} gradient="from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20" delay={0.15} />
+        <StatTile icon={<Icons.CheckCircle className="w-5 h-5 text-emerald-500" />} label="Completed" value={stats.completed} />
+        <StatTile icon={<Icons.Zap className="w-5 h-5 text-violet-500" fill="currentColor" />} label="XP Earned" value={`+${stats.xp}`} />
+        <StatTile icon={<Icons.Clock className="w-5 h-5 text-blue-500" />} label="Self-care min" value={stats.minutes} />
+        <StatTile icon={<Icons.Flame className="w-5 h-5 text-orange-500" fill="currentColor" />} label="Best streak" value={`${userStats?.longest_streak || 0}d`} />
       </div>
 
       {/* Activity Heatmap */}
-      <GlassCard className="p-5 animate-fade-in stagger-2">
-        <h2 className="text-[17px] font-bold text-gray-800 dark:text-purple-100 font-quicksand mb-4">Activity Heatmap</h2>
+      <GlassCard className="p-5">
+        <h2 className="text-base font-bold text-gray-800 dark:text-purple-100 mb-3">Activity Heatmap</h2>
         <div className="flex flex-wrap gap-1.5">
           {activity.map((a) => {
             const intensity = a.count / maxCount;
-            const bg = a.count === 0 ? 'bg-gray-100 dark:bg-slate-700/40' : intensity > 0.66 ? 'bg-gradient-to-br from-pink-500 to-violet-500' : intensity > 0.33 ? 'bg-pink-400' : 'bg-pink-200 dark:bg-pink-900/40';
+            const bg = a.count === 0 ? 'bg-gray-100 dark:bg-slate-700/50' : intensity > 0.66 ? 'bg-pink-500' : intensity > 0.33 ? 'bg-pink-400' : 'bg-pink-200 dark:bg-pink-900/40';
             return (
-              <div key={a.date} className={`w-7 h-7 rounded-[8px] ${bg} transition-all duration-500 hover:scale-110`} title={`${a.date}: ${a.count}`} />
+              <div key={a.date} className={`w-7 h-7 rounded-lg ${bg} transition-all`} title={`${a.date}: ${a.count}`} />
             );
           })}
         </div>
-        <div className="flex items-center justify-end gap-1.5 mt-4">
-          <span className="text-[10px] text-gray-400 font-medium">Less</span>
-          <div className="w-3 h-3 rounded bg-gray-100 dark:bg-slate-700/40" />
+        <div className="flex items-center justify-end gap-1.5 mt-3">
+          <span className="text-[10px] text-gray-400">Less</span>
+          <div className="w-3 h-3 rounded bg-gray-100 dark:bg-slate-700/50" />
           <div className="w-3 h-3 rounded bg-pink-200 dark:bg-pink-900/40" />
           <div className="w-3 h-3 rounded bg-pink-400" />
-          <div className="w-3 h-3 rounded bg-gradient-to-br from-pink-500 to-violet-500" />
-          <span className="text-[10px] text-gray-400 font-medium">More</span>
+          <div className="w-3 h-3 rounded bg-pink-500" />
+          <span className="text-[10px] text-gray-400">More</span>
         </div>
       </GlassCard>
 
       {/* Bar chart */}
-      <GlassCard className="p-5 animate-fade-in stagger-3">
-        <h2 className="text-[17px] font-bold text-gray-800 dark:text-purple-100 font-quicksand mb-4">Daily Completions</h2>
-        <div className="flex items-end justify-between gap-1.5 h-32">
+      <GlassCard className="p-5">
+        <h2 className="text-base font-bold text-gray-800 dark:text-purple-100 mb-3">Daily Completions</h2>
+        <div className="flex items-end justify-between gap-1 h-32">
           {activity.slice(-7).map((a) => {
             const h = Math.max(8, (a.count / maxCount) * 100);
             return (
-              <div key={a.date} className="flex-1 flex flex-col items-center gap-1.5">
-                <div className="w-full rounded-t-[10px] bg-gradient-to-t from-violet-500 to-pink-400 transition-all duration-700 ease-out" style={{ height: `${h}%` }} />
-                <span className="text-[9px] text-gray-400 font-medium">{new Date(a.date + 'T12:00').toLocaleDateString(undefined, { weekday: 'narrow' })}</span>
+              <div key={a.date} className="flex-1 flex flex-col items-center gap-1">
+                <div className="w-full rounded-t-lg bg-gradient-to-t from-violet-500 to-pink-400 transition-all duration-500" style={{ height: `${h}%` }} />
+                <span className="text-[9px] text-gray-400">{new Date(a.date + 'T12:00').toLocaleDateString(undefined, { weekday: 'narrow' })}</span>
               </div>
             );
           })}
@@ -144,29 +144,29 @@ export function ProgressScreen() {
 
       {/* Favorite category */}
       {stats.favoriteCat && (
-        <GlassCard className="p-5 animate-fade-in stagger-4">
-          <h2 className="text-[17px] font-bold text-gray-800 dark:text-purple-100 font-quicksand mb-3">Most Completed</h2>
+        <GlassCard className="p-5">
+          <h2 className="text-base font-bold text-gray-800 dark:text-purple-100 mb-3">Most Completed Category</h2>
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-[20px] bg-gradient-to-br ${catColors[stats.favoriteCat]} flex items-center justify-center shadow-md`}>
+            <div className={`w-12 h-12 rounded-2xl ${catColors[stats.favoriteCat]} flex items-center justify-center shadow-md`}>
               <Icons.Heart className="w-6 h-6 text-white" fill="currentColor" />
             </div>
-            <p className="text-[18px] font-bold text-gray-800 dark:text-purple-100 capitalize font-quicksand">{stats.favoriteCat.replace('-', ' ')}</p>
+            <p className="text-lg font-bold text-gray-800 dark:text-purple-100 capitalize">{stats.favoriteCat.replace('-', ' ')}</p>
           </div>
         </GlassCard>
       )}
 
       {stats.completed === 0 && (
-        <EmptyState emoji="🌱" title="No activity yet" subtitle="Complete challenges to see your progress bloom." />
+        <EmptyState icon={<Icons.TrendingUp className="w-7 h-7 text-violet-300" />} title="No activity yet" subtitle="Complete challenges to see your progress bloom." />
       )}
-    </NativeScroll>
+    </div>
   );
 }
 
-function StatTile({ icon, label, value, gradient }: { icon: React.ReactNode; label: string; value: string | number; gradient: string; delay?: number }) {
+function StatTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <GlassCard className={`p-4 animate-fade-in bg-gradient-to-br ${gradient}`} >
-      <div className="flex items-center gap-2 mb-2">{icon}<span className="text-[11px] font-semibold text-gray-500 dark:text-purple-300/60 uppercase tracking-wide">{label}</span></div>
-      <p className="text-[24px] font-bold text-gray-800 dark:text-purple-100 font-quicksand leading-none">{value}</p>
+    <GlassCard className="p-4">
+      <div className="flex items-center gap-2 mb-1.5">{icon}<span className="text-xs font-semibold text-gray-500 dark:text-purple-300/70">{label}</span></div>
+      <p className="text-2xl font-bold text-gray-800 dark:text-purple-100">{value}</p>
     </GlassCard>
   );
 }
