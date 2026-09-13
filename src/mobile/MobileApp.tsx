@@ -2,6 +2,8 @@ import { lazy, Suspense, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { BottomNav, type TabId } from './components/BottomNav';
 import { MobileAppProvider, useMobileApp } from './context/MobileAppContext';
+import { Onboarding } from './components/Onboarding';
+import { CelebrationModal } from './components/CelebrationModal';
 
 const HomeScreen = lazy(() => import('./screens/HomeScreen').then(m => ({ default: m.HomeScreen })));
 const ChallengesScreen = lazy(() => import('./screens/ChallengesScreen').then(m => ({ default: m.ChallengesScreen })));
@@ -55,10 +57,10 @@ function ScreenLoader() {
 
 function MobileShell() {
   const [tab, setTab] = useState<TabId>('home');
-  const { loadError, refresh } = useMobileApp();
+  const { loadError, refresh, showOnboarding, dismissOnboarding, celebration, dismissCelebration } = useMobileApp();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-violet-50 to-blue-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 transition-colors duration-500">
-      {/* Phone-frame max width for desktop preview */}
       <div className="mx-auto max-w-md min-h-screen relative">
         <div className="pt-[max(0.5rem,env(safe-area-inset-top))]">
           {loadError ? (
@@ -76,6 +78,16 @@ function MobileShell() {
         <Toast />
         <BottomNav active={tab} onChange={setTab} />
       </div>
+
+      {showOnboarding && <Onboarding onComplete={dismissOnboarding} />}
+
+      {celebration && (
+        <CelebrationModal
+          data={celebration}
+          onChooseAnother={() => { dismissCelebration(); setTab('challenges'); }}
+          onBackToToday={() => { dismissCelebration(); setTab('home'); }}
+        />
+      )}
     </div>
   );
 }

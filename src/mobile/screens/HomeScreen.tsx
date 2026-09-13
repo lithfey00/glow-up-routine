@@ -7,10 +7,14 @@ import { dailyQuote } from '../lib/quotes';
 import { haptic } from '../lib/haptics';
 import { supabase, type Challenge } from '../../lib/supabase';
 import { getLevelInfo, updateUserStats } from '../../lib/statsUtils';
-import { MOOD_CONFIG, type Mood } from '../../lib/types';
+import { MOOD_CONFIG, type Mood, BUDDY_STAGES } from '../../lib/types';
+import { getRecommendedChallenge } from '../../lib/recommend';
 
 export function HomeScreen() {
-  const { challenges, completedToday, userStats, buddyXp, mascot, toggleChallenge, loading, sessionId, showToast } = useMobileApp();
+  const {
+    challenges, completedToday, userStats, buddyXp, mascot,
+    toggleChallenge, completeChallenge, loading, sessionId, showToast, prefs,
+  } = useMobileApp();
   const [mood, setMood] = useState<Mood | null>(null);
   const [dailyClaimed, setDailyClaimed] = useState(false);
   const [quote] = useState(() => dailyQuote());
@@ -21,6 +25,24 @@ export function HomeScreen() {
     ? Math.floor((Date.now() - new Date(mascot.last_interaction).getTime()) / 86400000)
     : 0;
   const isSleepy = daysInactive >= 3 && completedToday.size === 0;
+
+  // Next buddy stage info
+  const nextStage = useMemo(() => {
+    for (let i = 0; i < BUDDY_STAGES.length; i++) {
+      if (BUDDY_STAGES[i].stage === stageInfo.stage) {
+        return BUDDY_STAGES[i + 1] || null;
+      }
+    }
+    return null;
+  }, [stageInfo.stage]);
+  const xpUntilNext = nextStage ? nextStage.minXp - buddyXp : null;
+
+  // Personalized glow moment pick
+  const glowMoment = useMemo(() => {
+    return getRecommendedChallenge(challenges, prefs ? { focus: prefs.focus, timeBudget: prefs.timeBudget, mood } : null, completedToday);
+  }, [challenges, prefs, mood, completedToday]);
+
+  const glowMomentDone = glowMoment ? completedToday.has(glowMoment.id) : false;
 
   const dailyPicks = useMemo(() => {
     const cats: Record<string, Challenge[]> = {};
@@ -102,6 +124,49 @@ export function HomeScreen() {
         </div>
       </GlassCard>
 
+      {/* Glow Moment — the one daily action */}
+      {glowMoment && (
+        <GlassCard className="p-5 bg-gradient-to-br from-pink-100/80 via-violet-100/60 to-purple-100/80 dark:from-purple-900/40 dark:via-pink-900/30 dark:to-violet-900/40 border-pink-200/50 dark:border-purple-700/40">
+          <div className="flex items-center gap-2 mb-3">
+            <Icons.Sparkles className="w-4 h-4 text-pink-500" />
+            <span className="text-xs font-bold text-pink-600 dark:text-pink-300 uppercase tracking-wider">Your glow moment for today</span>
+          </div>
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-violet-400 flex items-center justify-center flex-shrink-0 shadow-lg">
+              {(() => {
+                const C = (Icons[glowMoment.icon as keyof typeof Icons] as typeof Icons.Sparkles) || Icons.Sparkles;
+                return <C className="w-6 h-6 text-white" />;
+              })()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-gray-800 dark:text-purple-100">{glowMoment.title}</h3>
+              <p className="text-xs text-gray-500 dark:text-purple-200/70 mt-0.5 leading-relaxed line-clamp-2">{glowMoment.description}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 dark:text-purple-300/70 bg-white/50 dark:bg-slate-700/40 px-2 py-0.5 rounded-full">
+                  <Icons.Clock className="w-3 h-3" /> {glowMoment.duration_minutes} min
+                </span>
+                <span className="flex items-center gap-1 text-[10px] font-semibold text-violet-600 dark:text-purple-300 bg-violet-50 dark:bg-purple-900/30 px-2 py-0.5 rounded-full">
+                  <Icons.Zap className="w-3 h-3" fill="currentColor" /> +{glowMoment.glow_points} XP
+                </span>
+              </div>
+            </div>
+          </div>
+          {glowMomentDone ? (
+            <div className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-gradient-to-r from-green-100 to-emerald-100 dark:from-emerald-900/30 dark:to-green-900/30">
+              <Icons.Check className="w-4 h-4 text-emerald-600 dark:text-emerald-300" strokeWidth={3} />
+              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-200">Completed today</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => completeChallenge(glowMoment.id)}
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-violet-500 text-white text-sm font-bold shadow-lg hover:scale-[1.02] active:scale-100 transition-all"
+            >
+              Start your {glowMoment.duration_minutes}-minute glow
+            </button>
+          )}
+        </GlassCard>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <GlassCard className="p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -141,6 +206,7 @@ export function HomeScreen() {
         )}
       </GlassCard>
 
+      {/* Glow Buddy with improved XP and next stage preview */}
       <GlassCard className="p-5 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-900/20 dark:to-teal-900/20">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-bold text-gray-800 dark:text-purple-100">Glow Buddy</h2>
@@ -150,14 +216,34 @@ export function HomeScreen() {
           <div className="animate-float"><BuddySVG stage={stageInfo.stage} sleepy={isSleepy} size={100} /></div>
           <div className="flex-1">
             <p className="text-sm text-gray-600 dark:text-purple-100/80 leading-relaxed">
-              {isSleepy ? 'Your buddy missed you! A tiny step today means the world.' : completedToday.size === 0 ? 'Ready when you are! One challenge helps us grow.' : 'You\'re glowing! So proud of you today!'}
+              {isSleepy ? 'Your buddy missed you! A tiny step today means the world.' : completedToday.size === 0 ? 'Ready when you are! One challenge helps us grow.' : "You're glowing! So proud of you today!"}
             </p>
             <div className="mt-3 h-2 bg-white/60 dark:bg-slate-700/60 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-700" style={{ width: `${stageInfo.progress}%` }} />
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">{buddyXp} Buddy XP</p>
+            {nextStage && xpUntilNext !== null ? (
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-300/80 mt-1.5 font-semibold">
+                {Math.max(0, xpUntilNext)} XP until {nextStage.name}
+              </p>
+            ) : (
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-300/80 mt-1.5 font-semibold">
+                Max stage reached
+              </p>
+            )}
           </div>
         </div>
+        {/* Next stage preview */}
+        {nextStage && (
+          <div className="mt-3 flex items-center gap-2 pt-3 border-t border-emerald-100 dark:border-emerald-800/40">
+            <div className="w-8 h-8 rounded-xl bg-white/60 dark:bg-slate-700/60 flex items-center justify-center opacity-60">
+              <BuddySVG stage={nextStage.stage} size={32} />
+            </div>
+            <div className="flex-1">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-purple-300/60">Next stage</p>
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-300">{nextStage.name}</p>
+            </div>
+          </div>
+        )}
       </GlassCard>
 
       <GlassCard className="p-5">
