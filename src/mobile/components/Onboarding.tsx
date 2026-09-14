@@ -98,8 +98,8 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                   What would you like to focus on?
                 </p>
                 {FOCUS_OPTIONS.map((opt) => {
-                  const IconComp = Icons[opt.icon];
                   const active = focus === opt.id;
+                  const IconComp = (Icons[opt.icon] as typeof Icons.Sparkles | undefined) ?? Icons.Sparkles;
                   return (
                     <button
                       key={opt.id}

@@ -67,7 +67,7 @@ export function ProgressScreen() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-28 space-y-5 animate-fade-in">
+    <div className="px-4 pt-6 pb-32 space-y-5 animate-fade-in">
       <h1 className="text-2xl font-bold text-gray-800 dark:text-purple-100">Progress</h1>
 
       {/* Period toggle */}

@@ -76,6 +76,9 @@
 ::-webkit-scrollbar-thumb { background: rgba(196, 181, 253, 0.5); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(196, 181, 253, 0.8); }
 
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
 .animate-fade-in { animation: fade-in 0.4s ease-out; }
 .animate-badge-pop { animation: badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useMobileApp } from '../context/MobileAppContext';
 import { GlassCard } from '../components/ui';
+import { PremiumScreen } from '../components/PremiumScreen';
 import { useTheme } from '../../lib/theme';
 import { getLevelInfo } from '../../lib/statsUtils';
 import { haptic } from '../lib/haptics';
@@ -11,11 +12,16 @@ export function ProfileScreen() {
   const { theme, toggle } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [language, setLanguage] = useState('English');
+  const [showPremium, setShowPremium] = useState(false);
 
   const levelInfo = getLevelInfo(userStats?.glow_points || 0);
 
+  if (showPremium) {
+    return <PremiumScreen onBack={() => setShowPremium(false)} />;
+  }
+
   return (
-    <div className="px-4 pt-6 pb-28 space-y-5 animate-fade-in">
+    <div className="px-4 pt-6 pb-32 space-y-5 animate-fade-in">
       <h1 className="text-2xl font-bold text-gray-800 dark:text-purple-100">Profile</h1>
 
       {/* Profile header */}
@@ -85,7 +91,7 @@ export function ProfileScreen() {
         </SettingRow>
         <SettingRow icon={<Icons.Shield className="w-5 h-5 text-emerald-500" />} label="Privacy" chevron />
         <SettingRow icon={<Icons.Download className="w-5 h-5 text-amber-500" />} label="Export Data" chevron />
-        <SettingRow icon={<Icons.Crown className="w-5 h-5 text-amber-500" fill="currentColor" />} label="Glow Premium" chevron />
+        <SettingRow icon={<Icons.Crown className="w-5 h-5 text-amber-500" fill="currentColor" />} label="Glow Premium" onClick={() => { haptic('selection'); setShowPremium(true); }} chevron />
       </GlassCard>
 
       <p className="text-center text-xs text-gray-400 dark:text-purple-300/40">Glow Up v2.0 • Made with love</p>

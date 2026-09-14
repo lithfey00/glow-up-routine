@@ -90,7 +90,7 @@ export function RewardsScreen() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-28 space-y-5 animate-fade-in">
+    <div className="px-4 pt-6 pb-32 space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-purple-100">Rewards</h1>
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 rounded-full">

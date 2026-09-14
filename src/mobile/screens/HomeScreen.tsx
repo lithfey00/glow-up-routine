@@ -109,7 +109,7 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-28 space-y-5 animate-fade-in">
+    <div className="px-4 pt-6 pb-32 space-y-5 animate-fade-in">
       <div>
         <p className="text-sm text-gray-400 dark:text-purple-300/60">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-violet-600 dark:from-pink-300 dark:to-purple-300 bg-clip-text text-transparent">
